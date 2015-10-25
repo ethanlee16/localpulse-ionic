@@ -2,7 +2,7 @@ angular.module('starter.controllers', ['ionic'])
 
 .controller('DashCtrl', function($scope) {})
 
-.controller('ListViewCtrl', function($scope, $ionicPlatform, $ionicModal, $http) {
+.controller('ListViewCtrl', function($scope, $rootScope, $ionicPlatform, $ionicModal, $http) {
   
   $scope.addPost = function() {
     alert("test");
@@ -17,9 +17,9 @@ angular.module('starter.controllers', ['ionic'])
   $scope.didUpvote = false;
   $scope.upvoteToggle = function(id) {
     if($scope.didUpvote) {
-      $scope.getEntry(id).score++;
+      $scope.getEntry(id).votes++;
     } else {
-      $scope.getEntry(id).score--;
+      $scope.getEntry(id).votes--;
     }
    $scope.didUpvote = !$scope.didUpvote;
   }
@@ -28,9 +28,9 @@ angular.module('starter.controllers', ['ionic'])
   $scope.downvoteToggle = function(id) {
     console.log("downvote");
     if(!$scope.didDownvote) {
-      $scope.getEntry(id).score--;
+      $scope.getEntry(id).votes--;
     } else {
-      $scope.getEntry(id).score++;
+      $scope.getEntry(id).votes++;
     }
    $scope.didDownvote = !$scope.didDownvote;
   }
@@ -42,21 +42,21 @@ angular.module('starter.controllers', ['ionic'])
     "description": "Issue with the public restrooms on 5th Avenue",
     "latitude": 33.990639,
     "longitude": -118.322516,
-    "score": 36,
+    "votes": 36,
     "picture": ""
   }, {
     "id": "0002",
     "description": "Grafitti on the walls of the shops near 54th",
     "latitude": 33.987924, 
     "longitude": -118.305888,
-    "score": 23,
+    "votes": 23,
     "picture": ""
   }, {
     "id": "0003",
     "description": "Damaged street sign on Jefferson Blvd",
     "latitude": 34.025679, 
     "longitude": -118.345027,
-    "score": 15,
+    "votes": 15,
     "picture": ""
   }];
   
@@ -108,7 +108,7 @@ angular.module('starter.controllers', ['ionic'])
       ], function(
         Map, CSVLayer, Color, SimpleMarkerSymbol, SimpleRenderer, InfoTemplate, esriConfig, urlUtils
       ) {
-        esri.config.defaults.io.corsEnabledServers.push("104.131.148.213:8083");
+        esri.config.defaults.io.corsEnabledServers.push("localpulse.org");
         /*
         urlUtils.addProxyRule({
           proxyUrl: "/proxy/",
@@ -120,12 +120,22 @@ angular.module('starter.controllers', ['ionic'])
           center: [ -60, -10 ],
           zoom: 4 
         });
-        csv = new CSVLayer("http://104.131.148.213:8083/api/1.0/getAll", {
+        csv = new CSVLayer("https://localpulse.org/api/1.0/getAll", {
           copyright: "Pulse LLC"
         });
+        console.dir(csv)
         var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
         var marker = new SimpleMarkerSymbol("solid", 15, null, orangeRed);
         var renderer = new SimpleRenderer(marker);
+        renderer.setVisualVariables([{
+          "type": "sizeInfo",
+           "field": "VOTES",
+           "minSize": 10,
+           "maxSize": 35,
+           "minDataValue": 1,
+           "maxDataValue": 20
+        }]);
+        debugger;
         csv.setRenderer(renderer);
         var template = new InfoTemplate("${description}", "${votes}");
         csv.setInfoTemplate(template);
@@ -156,4 +166,5 @@ angular.module('starter.controllers', ['ionic'])
   $scope.settings = {
     enableFriends: true
   };
+  
 });
