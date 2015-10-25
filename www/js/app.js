@@ -40,25 +40,36 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
 
   // Each tab has its own nav history stack:
 
-  .state('tab.dash', {
-    url: '/dash',
+  .state('tab.listview', {
+    url: '/listview',
     views: {
-      'tab-dash': {
-        templateUrl: 'templates/tab-dash.html',
-        controller: 'DashCtrl'
+      'tab-listview': {
+        templateUrl: 'templates/tab-listview.html',
+        controller: 'ListViewCtrl'
+      }
+    }
+  })
+  
+  .state('tab.listdetail', {
+    url: '/listview/:id',
+    views: {
+      'tab-listdetail': {
+        templateUrl: 'templates/tab-listdetail.html',
+        controller: 'ListDetailCtrl'
       }
     }
   })
 
-  .state('tab.chats', {
-      url: '/chats',
+  .state('tab.maps', {
+      url: '/maps',
       views: {
-        'tab-chats': {
-          templateUrl: 'templates/tab-chats.html',
-          controller: 'ChatsCtrl'
+        'tab-maps': {
+          templateUrl: 'templates/tab-maps.html',
+          controller: 'MapsCtrl'
         }
       }
     })
+    /*
     .state('tab.chat-detail', {
       url: '/chats/:chatId',
       views: {
@@ -68,7 +79,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
         }
       }
     })
-
+  */
   .state('tab.account', {
     url: '/account',
     views: {
@@ -79,7 +90,14 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
     }
   });
 
+
+// you can't put HTML in here; this is the js file that controls
+// routing, config, etc. all html should be in HTML files within
+// the templates folder
+
+
+
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/dash');
+  $urlRouterProvider.otherwise('/tab/listview');
 
 });
