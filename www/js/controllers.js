@@ -146,15 +146,15 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
    $scope.didDownvote[index] = !$scope.didDownvote[index];
   }
 
-  $http.get('https://localpulse.org/api/1.0/getAllJSON').success(function (res) {
-    $scope.entries = res;
-    console.log(res)
+  $http.get('https://localpulse.org/api/1.0/getAllJSON').success(function (entries) {
+    $scope.entries = entries;
+    console.log(entries)
     
   
   $ionicPlatform.ready(function() {
     
-    angular.forEach(res, function(value, key) {
-      
+    angular.forEach(entries, function(value, key) {
+      // value.pictures[0]
       var x = value.location.longitude;
       var y = value.location.latitude;
       
