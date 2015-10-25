@@ -2,7 +2,7 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
 
 .controller('DashCtrl', function($scope) {})
 
-.controller('ListViewCtrl', function($scope, $rootScope, $ionicPlatform, $ionicModal, $cordovaGeolocation, $cordovaCamera, $ionicPopup, $http) {
+.controller('ListViewCtrl', function($scope, $ionicPlatform, $ionicModal, $cordovaGeolocation, $cordovaCamera, $ionicPopup, $http) {
 
   /* MODAL VIEW */
   $ionicModal.fromTemplateUrl('templates/modal-post.html', {
@@ -87,20 +87,57 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
     }
   }
   
-  // You can use this entries object in the interim
-  // in order to test your list items, which should interact with this
-  $rootScope.entries = [];
+  
+  $scope.didUpvote = [];
+  $scope.upvoteToggle = function(index) {
+    console.log(index)
+    $scope.didUpvote[index] = $scope.didUpvote[index] === undefined ? false : $scope.didUpvote[index];
+    if ($scope.didDownvote[index]) {
+      $scope.didDownvote[index] = false;
+      $scope.entries[index].votes += 2;
+    } else if(!$scope.didUpvote[index]) {
+      $scope.entries[index].votes++;
+    } else {
+      $scope.entries[index].votes--;
+    }
+   $scope.didUpvote[index] = !$scope.didUpvote[index];
+  }
+
+  $scope.didDownvote = [];
+  $scope.downvoteToggle = function(index) {
+    $scope.didDownvote[index] = $scope.didDownvote[index] === undefined ? false : $scope.didDownvote[index];
+    if ($scope.didUpvote[index]) {
+      $scope.didUpvote[index] = false;
+      $scope.entries[index].votes -= 2;
+    } else if(!$scope.didDownvote[index]) {
+      $scope.entries[index].votes--;
+    } else {
+      $scope.entries[index].votes++;
+    }
+   $scope.didDownvote[index] = !$scope.didDownvote[index];
+  }
+  
+  $http.get('https://localpulse.org/api/1.0/getAllJSON').success(function (res) {
+    $scope.entries = res;
+    console.log(res)
+    
   
   $ionicPlatform.ready(function() {
-    angular.forEach($rootScope.entries, function(value, key) {
+    
+    angular.forEach(res, function(value, key) {
       
-      var x = value.longitude;
-      var y = value.latitude;
+      var x = value.location.longitude;
+      var y = value.location.latitude;
       
       $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
                 +"reverseGeocode?location=" + x + "%2C" 
                 + y + "&distance=200&outSR=&f=pjson")
       .success(function(response) {
+        if (response.error) {
+          value.geolocation = value.location.latitude 
+        + ", " + value.location.longitude;
+          return;
+        }
         console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
                 +"reverseGeocode?location=" + x + "%2C" 
                 + y + "&distance=200&outSR=&f=pjson");
@@ -108,11 +145,11 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
          value.geolocation = response.address.Address + ", " + response.address.City;
       })
       .error(function() {
-        value.geolocation = value.latitude 
-        + ", " + value.longitude;
+        value.geolocation = value.location.latitude 
+        + ", " + value.location.longitude;
       });
     });
-    
+  })
   });
   
 })
@@ -151,10 +188,9 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
           center: [ -60, -10 ],
           zoom: 4 
         });
-        csv = new CSVLayer("https://localpulse.org/api/1.0/getAll", {
+        var csv = new CSVLayer("https://localpulse.org/api/1.0/getAll", {
           copyright: "Pulse LLC"
         });
-        console.dir(csv)
         var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
         var marker = new SimpleMarkerSymbol("solid", 15, null, orangeRed);
         var renderer = new SimpleRenderer(marker);
@@ -166,7 +202,6 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
            "minDataValue": 1,
            "maxDataValue": 20
         }]);
-        debugger;
         csv.setRenderer(renderer);
         var template = new InfoTemplate("${description}", "${votes}");
         csv.setInfoTemplate(template);
