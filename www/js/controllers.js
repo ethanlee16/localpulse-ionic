@@ -8,15 +8,31 @@ angular.module('starter.controllers', ['ionic'])
     alert("test");
   }
   
+  $scope.getEntry = function(id) {
+    return $scope.entries.filter(function(entry) {
+        return entry.id == id;
+    })[0];
+  }
+
+  $scope.didUpvote = false;
   $scope.upvoteToggle = function(id) {
-    alert(id);
-    var toggled = false;
-    if(!toggled) {
-      //$scope.entries[id].score++;
+    if($scope.didUpvote) {
+      $scope.getEntry(id).score++;
     } else {
-      //$scope.entries[id].score--;
+      $scope.getEntry(id).score--;
     }
-   toggled = !toggled;
+   $scope.didUpvote = !$scope.didUpvote;
+  }
+
+  $scope.didDownvote = false;
+  $scope.downvoteToggle = function(id) {
+    console.log("downvote");
+    if(!$scope.didDownvote) {
+      $scope.getEntry(id).score--;
+    } else {
+      $scope.getEntry(id).score++;
+    }
+   $scope.didDownvote = !$scope.didDownvote;
   }
   
   // You can use this entries object in the interim
