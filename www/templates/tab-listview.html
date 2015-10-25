@@ -11,9 +11,9 @@
             <div class="votingButtons" style="width: 20px;height: 50px; z-index: 999; margin: 0 0 0 0; float: left">
                 <!-- will replace text w/ pretty imgs -->
 
-                <a ng-click="upvoteToggle({{entry.id}})" style="display: block"><img src="img/upvoteIcon.png"  width="15"></a>
+                <a ng-click="upvoteToggle($index)" style="display: block"><img src="img/upvoteIcon.png"  width="15"></a>
                 <p>{{entry.score}}</p>
-                <a ng-click="downvoteToggle({{entry.id}})" style="display: block"><img src="img/downvoteIcon.png"  width="15"></a>
+                <a ng-click="downvoteToggle($index)" style="display: block"><img src="img/downvoteIcon.png"  width="15"></a>
             </div>
             <div class="content" style="margin-left: 30px; margin-top: 10px">
                 <h2 style="white-space: normal">{{entry.description}}</h2>

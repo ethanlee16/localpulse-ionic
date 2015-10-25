@@ -1,67 +1,98 @@
-angular.module('starter.controllers', ['ionic'])
+angular.module('starter.controllers', ['ionic', 'ngCordova'])
 
 .controller('DashCtrl', function($scope) {})
 
-.controller('ListViewCtrl', function($scope, $rootScope, $ionicPlatform, $ionicModal, $http) {
+.controller('ListViewCtrl', function($scope, $rootScope, $ionicPlatform, $ionicModal, $cordovaGeolocation, $cordovaCamera, $ionicPopup, $http) {
+
+  /* MODAL VIEW */
+  $ionicModal.fromTemplateUrl('templates/modal-post.html', {
+    scope: $scope,
+    animation: 'slide-in-up'
+  }).then(function(modal) {
+    $scope.modal = modal;
+  });
   
   $scope.addPost = function() {
-    alert("test");
-  }
-  
-  $scope.getEntry = function(id) {
-    return $scope.entries.filter(function(entry) {
-        return entry.id == id;
-    })[0];
+    $scope.modal.show();
+      var posOptions = {timeout: 10000, enableHighAccuracy: false};
+      $cordovaGeolocation.getCurrentPosition(posOptions).then(function(position) {
+        alert(position.coords.latitude + ", " + position.coords.longitude);
+        var lat = position.coords.latitude;
+        var long = position.coords.longitude;
+
+        $scope.formData = new FormData();
+        $scope.formData.append("latitude", lat);
+        $scope.formData.append("longitude", long);
+
+      }, function(err) {
+        console.log(err);
+    });
   }
 
-  $scope.didUpvote = false;
-  $scope.upvoteToggle = function(id) {
-    if($scope.didUpvote) {
-      $scope.getEntry(id).votes++;
-    } else {
-      $scope.getEntry(id).votes--;
-    }
-   $scope.didUpvote = !$scope.didUpvote;
+  $scope.closeModal = function() {
+    $scope.modal.hide();
   }
 
-  $scope.didDownvote = false;
-  $scope.downvoteToggle = function(id) {
-    console.log("downvote");
-    if(!$scope.didDownvote) {
-      $scope.getEntry(id).votes--;
+  $scope.$on('$destroy', function() {
+    $scope.modal.remove();
+  });
+
+  $scope.capture = function() {
+    var options = {
+      quality: 75,
+      destinationType: Camera.DestinationType.DATA_URL,
+      sourceType: Camera.PictureSourceType.CAMERA,
+      encodingType: Camera.EncodingType.JPEG,
+      targetWidth: 100,
+      targetHeight: 100,
+      popoverOptions: CameraPopoverOptions,
+      saveToPhotoAlbum: false,
+      correctOrientation:true
+    };
+
+    $cordovaCamera.getPicture(options).then(function(imageData) {
+      var image = document.getElementById('preview-image');
+      image.src = "data:image/jpeg;base64," + imageData;
+      $scope.formData.append("picture", imageData);
+    }, function(err) {
+      console.log("Error!");
+    });
+  };
+
+  $scope.submitPost = function() {
+    if($scope.description === "") {
+      $ionicPopup.alert({
+        template: 'You need to enter a description to submit!',
+        title: 'Description needed'
+      });
+    } else if(!$scope.formData.has("picture")) {
+      $ionicPopup.alert({
+        template: 'You need to take a picture of the incident!',
+        title: 'Image needed'
+      });
     } else {
-      $scope.getEntry(id).votes++;
+      $http.post("https://localpulse.org/api/1.0/upload", $scope.formData, {
+        headers: {'Content-Type': undefined}
+      })
+      .success(function() {
+        $scope.modal.hide();
+        $ionicPopup.alert({
+          template: 'Your incident was posted.',
+          title: 'Success!'
+        });
+      })
+      .error(function() {
+        console.log("There was, like an error");
+      })
     }
-   $scope.didDownvote = !$scope.didDownvote;
   }
   
   // You can use this entries object in the interim
   // in order to test your list items, which should interact with this
-  $scope.entries = [{
-    "id": "0001",
-    "description": "Issue with the public restrooms on 5th Avenue",
-    "latitude": 33.990639,
-    "longitude": -118.322516,
-    "votes": 36,
-    "picture": ""
-  }, {
-    "id": "0002",
-    "description": "Grafitti on the walls of the shops near 54th",
-    "latitude": 33.987924, 
-    "longitude": -118.305888,
-    "votes": 23,
-    "picture": ""
-  }, {
-    "id": "0003",
-    "description": "Damaged street sign on Jefferson Blvd",
-    "latitude": 34.025679, 
-    "longitude": -118.345027,
-    "votes": 15,
-    "picture": ""
-  }];
+  $rootScope.entries = [];
   
   $ionicPlatform.ready(function() {
-    angular.forEach($scope.entries, function(value, key) {
+    angular.forEach($rootScope.entries, function(value, key) {
       
       var x = value.longitude;
       var y = value.latitude;

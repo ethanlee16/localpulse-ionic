@@ -1,8 +1,20 @@
 <ion-modal-view>
     <ion-header-bar>
-      <h1 class="title">Submit Event</h1>
+        <h1 class="title">Submit Report</h1>
+        <div class="buttons">
+            <button class="button" ng-click="closeModal()">Cancel</button>
+        </div>
     </ion-header-bar>
     <ion-content>
-      Hello!
+        <h2>Submit Report</h2>
+        <textarea placeholder="Give a 10-15 word description of the issue" ng-model="description"></textarea>
+         <button class="button button-stable" ng-click="capture()">
+          Take Picture of Incident
+        </button>
+        
+        <button class="button button-positive" ng-click="submitPost()">
+          Submit Incident
+        </button>
+        <img id="preview-image">
     </ion-content>
-  </ion-modal-view>
+</ion-modal-view>
