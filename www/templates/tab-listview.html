@@ -1,4 +1,4 @@
-<ion-view view-title="Pulse">
+<ion-view view-title="Localpulse">
  <ion-nav-buttons side="right">
     <button class="button" ng-click="addPost()">
       +
@@ -12,7 +12,7 @@
                 <!-- will replace text w/ pretty imgs -->
 
                 <a ng-click="upvoteToggle($index)" style="display: block"><img src="img/upvoteIcon.png"  width="15"></a>
-                <p>{{entry.score}}</p>
+                <p>{{entry.votes}}</p>
                 <a ng-click="downvoteToggle($index)" style="display: block"><img src="img/downvoteIcon.png"  width="15"></a>
             </div>
             <div class="content" style="margin-left: 30px; margin-top: 10px">

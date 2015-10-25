@@ -115,17 +115,19 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
       })
     }
   }
-
+  
+  
   $scope.didUpvote = [];
   $scope.upvoteToggle = function(index) {
+    console.log(index)
     $scope.didUpvote[index] = $scope.didUpvote[index] === undefined ? false : $scope.didUpvote[index];
     if ($scope.didDownvote[index]) {
       $scope.didDownvote[index] = false;
-      $scope.entries[index].score += 2;
+      $scope.entries[index].votes += 2;
     } else if(!$scope.didUpvote[index]) {
-      $scope.entries[index].score++;
+      $scope.entries[index].votes++;
     } else {
-      $scope.entries[index].score--;
+      $scope.entries[index].votes--;
     }
    $scope.didUpvote[index] = !$scope.didUpvote[index];
   }
@@ -135,39 +137,50 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
     $scope.didDownvote[index] = $scope.didDownvote[index] === undefined ? false : $scope.didDownvote[index];
     if ($scope.didUpvote[index]) {
       $scope.didUpvote[index] = false;
-      $scope.entries[index].score -= 2;
+      $scope.entries[index].votes -= 2;
     } else if(!$scope.didDownvote[index]) {
-      $scope.entries[index].score--;
+      $scope.entries[index].votes--;
     } else {
-      $scope.entries[index].score++;
+      $scope.entries[index].votes++;
     }
    $scope.didDownvote[index] = !$scope.didDownvote[index];
   }
+
+  $http.get('https://localpulse.org/api/1.0/getAllJSON').success(function (res) {
+    $scope.entries = res;
+    console.log(res)
+    
   
-  // You can use this entries object in the interim
-  // in order to test your list items, which should interact with this
-  $scope.entries = [{
-    "id": "0001",
-    "description": "Issue with the public restrooms on 5th Avenue",
-    "latitude": 33.990639,
-    "longitude": -118.322516,
-    "score": 36,
-    "picture": ""
-  }, {
-    "id": "0002",
-    "description": "Grafitti on the walls of the shops near 54th",
-    "latitude": 33.987924, 
-    "longitude": -118.305888,
-    "score": 23,
-    "picture": ""
-  }, {
-    "id": "0003",
-    "description": "Damaged street sign on Jefferson Blvd",
-    "latitude": 34.025679, 
-    "longitude": -118.345027,
-    "score": 15,
-    "picture": ""
-  }];
+  $ionicPlatform.ready(function() {
+    
+    angular.forEach(res, function(value, key) {
+      
+      var x = value.location.longitude;
+      var y = value.location.latitude;
+      
+      $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
+                +"reverseGeocode?location=" + x + "%2C" 
+                + y + "&distance=200&outSR=&f=pjson")
+      .success(function(response) {
+        if (response.error) {
+          value.geolocation = value.location.latitude 
+        + ", " + value.location.longitude;
+          return;
+        }
+        console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
+                +"reverseGeocode?location=" + x + "%2C" 
+                + y + "&distance=200&outSR=&f=pjson");
+        console.log(response);
+         value.geolocation = response.address.Address + ", " + response.address.City;
+      })
+      .error(function() {
+        value.geolocation = value.location.latitude 
+        + ", " + value.location.longitude;
+      });
+    });
+  })
+  });
+
 })
 
 .controller('ListDetailCtrl', function($scope) {
@@ -192,7 +205,7 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
       ], function(
         Map, CSVLayer, Color, SimpleMarkerSymbol, SimpleRenderer, InfoTemplate, esriConfig, urlUtils
       ) {
-        esri.config.defaults.io.corsEnabledServers.push("104.131.148.213:8083");
+        esri.config.defaults.io.corsEnabledServers.push("localpulse.org");
         /*
         urlUtils.addProxyRule({
           proxyUrl: "/proxy/",
@@ -204,12 +217,20 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
           center: [ -60, -10 ],
           zoom: 4 
         });
-        csv = new CSVLayer("http://104.131.148.213:8083/api/1.0/getAll", {
+        var csv = new CSVLayer("https://localpulse.org/api/1.0/getAll", {
           copyright: "Pulse LLC"
         });
         var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
         var marker = new SimpleMarkerSymbol("solid", 15, null, orangeRed);
         var renderer = new SimpleRenderer(marker);
+        renderer.setVisualVariables([{
+          "type": "sizeInfo",
+           "field": "VOTES",
+           "minSize": 10,
+           "maxSize": 35,
+           "minDataValue": 1,
+           "maxDataValue": 20
+        }]);
         csv.setRenderer(renderer);
         var template = new InfoTemplate("${description}", "${votes}");
         csv.setInfoTemplate(template);
@@ -240,4 +261,5 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
   $scope.settings = {
     enableFriends: true
   };
+  
 });
