@@ -3,7 +3,30 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
 .controller('DashCtrl', function($scope) {})
 
 .controller('ListViewCtrl', function($scope, $ionicPlatform, $ionicModal, $cordovaGeolocation, $cordovaCamera, $ionicPopup, $http) {
-
+  $ionicPlatform.ready(function() {
+    $scope.formData = new FormData();
+    angular.forEach($scope.entries, function(value, key) {
+      
+      var x = value.longitude;
+      var y = value.latitude;
+      
+      $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
+                +"reverseGeocode?location=" + x + "%2C" 
+                + y + "&distance=200&outSR=&f=pjson")
+      .success(function(response) {
+        console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
+                +"reverseGeocode?location=" + x + "%2C" 
+                + y + "&distance=200&outSR=&f=pjson");
+        console.log(response);
+         value.geolocation = response.address.Address + ", " + response.address.City;
+      })
+      .error(function() {
+        value.geolocation = value.latitude 
+        + ", " + value.longitude;
+      });
+    });
+    
+  });
   /* MODAL VIEW */
   $ionicModal.fromTemplateUrl('templates/modal-post.html', {
     scope: $scope,
@@ -14,15 +37,15 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
   
   $scope.addPost = function() {
     $scope.modal.show();
+    console.log("test: " + $scope.formData);
       var posOptions = {timeout: 10000, enableHighAccuracy: false};
       $cordovaGeolocation.getCurrentPosition(posOptions).then(function(position) {
-        alert(position.coords.latitude + ", " + position.coords.longitude);
         var lat = position.coords.latitude;
         var long = position.coords.longitude;
-
-        $scope.formData = new FormData();
         $scope.formData.append("latitude", lat);
+        console.log($scope.formData.get("latitude"));
         $scope.formData.append("longitude", long);
+        console.log($scope.formData.get("longitude"));
 
       }, function(err) {
         console.log(err);
@@ -35,9 +58,11 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
 
   $scope.$on('$destroy', function() {
     $scope.modal.remove();
+    $scope.didTakePicture = false;
   });
 
   $scope.capture = function() {
+    $scope.didTakePicture = true;
     var options = {
       quality: 75,
       destinationType: Camera.DestinationType.DATA_URL,
@@ -60,19 +85,23 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
   };
 
   $scope.submitPost = function() {
-    if($scope.description === "") {
+    console.log($scope.formData);
+    if($scope.description === "" || $scope.description === null) {
       $ionicPopup.alert({
         template: 'You need to enter a description to submit!',
         title: 'Description needed'
       });
-    } else if(!$scope.formData.has("picture")) {
+    } else if(!$scope.didTakePicture) {
       $ionicPopup.alert({
         template: 'You need to take a picture of the incident!',
         title: 'Image needed'
       });
     } else {
       $http.post("https://localpulse.org/api/1.0/upload", $scope.formData, {
-        headers: {'Content-Type': undefined}
+        transformRequest: angular.identity,
+        headers: {
+          'Content-Type': undefined
+        }
       })
       .success(function() {
         $scope.modal.hide();
@@ -82,7 +111,7 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
         });
       })
       .error(function() {
-        console.log("There was, like an error");
+        alert("There was, like an error");
       })
     }
   }
@@ -139,31 +168,6 @@ angular.module('starter.controllers', ['ionic', 'ngCordova'])
     "score": 15,
     "picture": ""
   }];
-  
-  $ionicPlatform.ready(function() {
-    angular.forEach($scope.entries, function(value, key) {
-      
-      var x = value.longitude;
-      var y = value.latitude;
-      
-      $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
-                +"reverseGeocode?location=" + x + "%2C" 
-                + y + "&distance=200&outSR=&f=pjson")
-      .success(function(response) {
-        console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
-                +"reverseGeocode?location=" + x + "%2C" 
-                + y + "&distance=200&outSR=&f=pjson");
-        console.log(response);
-         value.geolocation = response.address.Address + ", " + response.address.City;
-      })
-      .error(function() {
-        value.geolocation = value.latitude 
-        + ", " + value.longitude;
-      });
-    });
-    
-  });
-  
 })
 
 .controller('ListDetailCtrl', function($scope) {
