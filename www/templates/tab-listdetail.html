@@ -1,0 +1,32 @@
+<ion-view view-title="{{title}}">
+    <ion-content padding="false" class="">
+        <!--<img ng-src="http://localpulse.org/{{ entry.pictures[0] }}">-->
+        <button class="button button-large button-royal" style="position: absolute; left: 50%; top: 250px; transform: translate(-50%, -50%); z-index: 9999; width: 200px" ng-click="fakeVote()">
+               {{buttonTitle}} ({{entry.votes}})
+        </button>
+        <div class="item problem-entry" style="height: 250px" ng-style="{'background': 'linear-gradient( rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) ), url(&quot;http://localpulse.org/' + entry.pictures[0] + '&quot;)'}">
+            <h2 style="color: white; font-weight: 300; font-size: 24pt; text-align: center; margin-top: 80px; word-wrap: break-word">{{entry.description}}</h2>
+            <p style="color: white; font-size: 14pt; text-align: center; font-weight: 300">{{entry.createdAt | date}}</p> 
+            <p style="color: white; font-size: 16pt; text-align: center">{{entry.geolocation}}</p> 
+        </div>
+        
+        <p style="color: gray; font-size: 14pt; text-align: center; margin-top: 60px" ng-if="comments.length === 0">No comments here</p>
+        <div class="list card" ng-if="comments.length > 0" ng-repeat="comment in comments" style="margin-top: 20px">
+            <div class="item item-body">
+                <p>{{comment.data}}</p>
+                <p class="subdued" am-time-ago="comment.createdAt"></p>
+            </div>
+        </div>
+        <div class="item item-input-inset" style="position: absolute; width: 100%; top: 500px">
+            <!-- style="position: absolute; width: 100%; top: 500px" -->
+        <label class="item-input">
+            <input type="text" placeholder="Add Comment" ng-model="comment.data">
+        </label>
+        <button class="button button-clear button-positive" ng-click="postComment()" style="position: absolute; right: 5px; margin-top: -5px">
+             Post
+        </button>
+        </div>
+
+    </ion-content>
+    
+</ion-view>

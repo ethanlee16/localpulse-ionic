@@ -1,20 +1,28 @@
 <ion-modal-view>
-    <ion-header-bar>
+    <ion-header-bar class="bar-dark">
         <h1 class="title">Submit Report</h1>
         <div class="buttons">
             <button class="button" ng-click="closeModal()">Cancel</button>
         </div>
     </ion-header-bar>
-    <ion-content>
-        <h2>Submit Report</h2>
-        <textarea placeholder="Give a 10-15 word description of the issue" ng-model="description"></textarea>
-         <button class="button button-stable" ng-click="capture()">
-          Take Picture of Incident
-        </button>
+    <ion-content padding="true">
+        <!--<h2>Submit Report</h2>-->
+        <h3 style="font-weight: 300; font-size: 14pt; color: gray; margin-left: 5%; margin-right: 5%; margin-top: 5%">Submitting a problem on Localpulse is simple. All you need to do is write a short description, take a picture, and tap Submit. </h3>
+        <p style="color: gray; margin-left: 5%; margin-right: 5%;">We'll automatically grab your location and attach it to your post.</p>
+        <label class="item item-input item-stacked-label">
+            <span class="input-label">Description</span>
+            <input ng-model="problem.description" type="text" placeholder="Write a 5-10 word description of your problem">
+        </label>
+        <div style="margin-left: auto; margin-right: auto; text-align: center; margin-top: 25px">
+             <button class="button icon-left ion-camera button-stable" ng-click="capture()">
+              Take Picture
+            </button>
+            
+            <button class="button button-positive" ng-click="submitPost()">
+              Submit Incident
+            </button>
+        </div>
         
-        <button class="button button-positive" ng-click="submitPost()">
-          Submit Incident
-        </button>
-        <img id="preview-image">
+        <img id="preview-image" style="width: 100%; margin-left: auto; margin-right: auto; text-align: center; margin-top: 5%">
     </ion-content>
 </ion-modal-view>
