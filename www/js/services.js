@@ -21,12 +21,12 @@ angular.module('starter.services', [])
     face: 'https://pbs.twimg.com/profile_images/479090794058379264/84TKj_qa.jpeg'
   }, {
     id: 3,
-    name: 'Dick McAsshole',
+    name: 'Dick',
     lastText: 'Look at my mukluks!',
     face: 'https://pbs.twimg.com/profile_images/598205061232103424/3j5HUXMY.png'
   }, {
     id: 4,
-    name: "Moby's Dick",
+    name: "Moby Dick",
     lastText: 'This is wicked good ice cream.',
     face: 'https://pbs.twimg.com/profile_images/578237281384841216/R3ae1n61.png'
   }];

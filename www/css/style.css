@@ -3,3 +3,41 @@
 .view-title {
     color: blue;
 }
+
+.problem-list {
+    background-color: white;
+}
+
+div.item.problem-entry {
+    background-position: center center !important; 
+    background-size: 100% !important;
+}
+
+.problem-entry h2 {
+    color: white;
+    font-weight: 700;
+    font-size: 16pt;
+}
+
+.problem-entry p {
+    color: white;
+    font-size: 14pt;
+}
+
+p.votes {
+    font-weight: 700;
+    font-size: 12pt;
+}
+
+.fixed-outside{
+  position: absolute;
+  bottom: 50px;
+  color:white;
+  width: 100%;
+  height: 60px;
+  text-align:center;
+}
+
+.has-bottom .scroll{
+  padding-bottom: 60px !important;
+}

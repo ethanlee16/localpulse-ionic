@@ -18,7 +18,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
     }
     if (window.StatusBar) {
       // org.apache.cordova.statusbar required
-      StatusBar.styleLightContent();
+      StatusBar.styleDefault();
     }
   });
 })
@@ -51,9 +51,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
   })
   
   .state('tab.listdetail', {
-    url: '/listview/:id',
+    url: '/listview/:entry',
     views: {
-      'tab-listdetail': {
+      'tab-listview': {
         templateUrl: 'templates/tab-listdetail.html',
         controller: 'ListDetailCtrl'
       }
