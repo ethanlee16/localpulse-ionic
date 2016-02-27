@@ -1,33 +1,97 @@
 angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
 
+.run(function ($http, $rootScope, $ionicPlatform) {
+  $rootScope.doRefresh = function(cb) {
+    console.log("Refreshed");
+    $http.get('http://localpulse.org/api/1.0/getAllJSON').success(function (entries) {
+
+      $rootScope.entries = entries;
+      console.log(entries)
+
+      $ionicPlatform.ready(function() {
+
+        angular.forEach(entries, function(value, key) {
+          // value.pictures[0]
+          var x = value.location.longitude;
+          var y = value.location.latitude;
+
+          $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
+                    +"reverseGeocode?location=" + x + "%2C"
+                    + y + "&distance=200&outSR=&f=pjson")
+          .success(function(response) {
+            if (response.error) {
+              value.geolocation = value.location.latitude
+            + ", " + value.location.longitude;
+              return;
+            }
+            //console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
+            //        +"reverseGeocode?location=" + x + "%2C"
+            //        + y + "&distance=200&outSR=&f=pjson");
+            //console.log(response);
+             value.geolocation = response.address.Address + ", " + response.address.City;
+          })
+          .error(function() {
+            value.geolocation = value.location.latitude
+            + ", " + value.location.longitude;
+          })
+          .finally(function() {
+            if (cb) {
+              cb();
+            }
+          });
+        });
+      })
+    });
+  };
+
+  $rootScope.findEntry = function (objectId) {
+    for (var i = 0; i < $rootScope.entries.length; i++) {
+      if ($rootScope.entries[i].objectId === objectId) {
+        return $rootScope.entries[i];
+      }
+    }
+  };
+
+  $rootScope.vote = function (entry, amt) {
+    $http.post("http://localpulse.org/api/1.1/vote/" + entry.objectId, { votes: amt })
+      .success(function(response) {
+        // entry.votes = response;
+      })
+      .error(function() {
+        console.log("Error voting");
+      });
+  };
+})
+
 .controller('DashCtrl', function($scope) {})
 
-.controller('ListViewCtrl', function($scope, $ionicPlatform, $ionicModal, 
-  $cordovaGeolocation, $cordovaCamera, $cordovaFileTransfer, $ionicPopup, $http) {
-  
+.controller('ListViewCtrl', function($scope, $ionicPlatform, $ionicModal,
+  $cordovaGeolocation, $cordovaCamera, $cordovaFileTransfer, $ionicPopup, $http, $rootScope) {
+
   $ionicPlatform.ready(function() {
-    
+
     angular.forEach($scope.entries, function(value, key) {
-      
+
       var x = value.longitude;
       var y = value.latitude;
-      
+
       $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
-                +"reverseGeocode?location=" + x + "%2C" 
+                +"reverseGeocode?location=" + x + "%2C"
                 + y + "&distance=200&outSR=&f=pjson")
       .success(function(response) {
         console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
-                +"reverseGeocode?location=" + x + "%2C" 
+                +"reverseGeocode?location=" + x + "%2C"
                 + y + "&distance=200&outSR=&f=pjson");
         console.log(response);
-         value.geolocation = response.address.Address + ", " + response.address.City;
+        if (!response.address) return;
+        value.geolocation = response.address.Address + ", " + response.address.City;
       })
       .error(function() {
-        value.geolocation = value.latitude 
+        value.geolocation = value.latitude
         + ", " + value.longitude;
       });
     });
-    
+
   });
   /* MODAL VIEW */
   $ionicModal.fromTemplateUrl('templates/modal-post.html', {
@@ -37,9 +101,9 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
     $scope.modal = modal;
     $scope.problem = {description: ""};
   });
-  
+
   $scope.addPost = function() {
-   
+
     $scope.modal.show();
 
   }
@@ -73,14 +137,14 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
 
       var preview = document.getElementById("preview-image");
       preview.src = imageData;
-      
+
     }, function(err) {
       console.log("Error!");
     });
   };
 
   $scope.submitPost = function() {
-    
+
     var continueToPost = function (position) {
       console.log("Continuing to post!")
       var lat = position.coords.latitude;
@@ -99,7 +163,7 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
           title: 'Image needed'
         });
       } else {
-        console.log("POSTing the following: \n[latitude]: " + $scope.formData.latitude 
+        console.log("POSTing the following: \n[latitude]: " + $scope.formData.latitude
           + "\n[longitude]: " + $scope.formData.longitude + "\n[description]: " + $scope.problem.description
           + "\n[picture]: " + $scope.formData.imageURI);
         $cordovaFileTransfer.upload("http://localpulse.org/api/1.0/upload", $scope.formData.imageURI, {
@@ -131,83 +195,47 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
     });
   }
 
-  $scope.didUpvote = [];
-  $scope.upvoteToggle = function(index) {
-    
-    $scope.didUpvote[index] = $scope.didUpvote[index] === undefined ? false : $scope.didUpvote[index];
-    if ($scope.didDownvote[index]) {
-      $scope.didDownvote[index] = false;
-      $scope.entries[index].votes += 2;
+  $scope.upvoteToggle = function(objectId) {
 
-    } else if(!$scope.didUpvote[index]) {
-
-      $scope.entries[index].votes++;
+    var entry = $rootScope.findEntry(objectId);
+    if (!entry) return;
+    entry.didUpvote = entry.didUpvote === undefined ? false : entry.didUpvote;
+    var old = entry.votes;
+    if (entry.didDownvote) {
+      entry.didDownvote = false;
+      entry.votes += 2;
+    } else if(!entry.didUpvote) {
+      entry.votes++;
     } else {
-
-      $scope.entries[index].votes--;
+      entry.votes--;
     }
-   $scope.didUpvote[index] = !$scope.didUpvote[index];
-    console.log("Upvoting - " + index + " - now we have " + ($scope.entries[index].votes));
-  } 
-
-  $scope.didDownvote = [];
-  $scope.downvoteToggle = function(index) {
-    
-    $scope.didDownvote[index] = $scope.didDownvote[index] === undefined ? false : $scope.didDownvote[index];
-    if ($scope.didUpvote[index]) {
-      $scope.didUpvote[index] = false;
-      $scope.entries[index].votes -= 2;
-
-    } else if(!$scope.didDownvote[index]) {
-      $scope.entries[index].votes--;
-
-    } else {
-      $scope.entries[index].votes++;
-    }
-   $scope.didDownvote[index] = !$scope.didDownvote[index];
-   console.log("Downvoting - " + index + " - now we have " + ($scope.entries[index].votes));
+    entry.didUpvote = !entry.didUpvote;
+    console.log("Upvoting - " + objectId + " - now we have " + (entry.votes));
+    $rootScope.vote(entry, entry.votes - old);
   }
 
+  $scope.downvoteToggle = function(objectId) {
 
-  $scope.doRefresh = function() {
-    console.log("Refreshed");
-    $http.get('http://localpulse.org/api/1.0/getAllJSON').success(function (entries) {
+    var entry = $rootScope.findEntry(objectId);
+    if (!entry) return;
+    entry.didDownvote = entry.didDownvote === undefined ? false : entry.didDownvote;
+    var old = entry.votes;
+    if (entry.didUpvote) {
+      entry.didUpvote = false;
+      entry.votes -= 2;
+    } else if(!entry.didDownvote) {
+      entry.votes--;
+    } else {
+      entry.votes++;
+    }
+    entry.didDownvote = !entry.didDownvote;
+    console.log("Downvoting - " + objectId + " - now we have " + (entry.votes));
+    $rootScope.vote(entry, entry.votes - old);
+  }
 
-      $scope.entries = entries;
-      console.log(entries)
-      
-    
-      $ionicPlatform.ready(function() {
-        
-        angular.forEach(entries, function(value, key) {
-          // value.pictures[0]
-          var x = value.location.longitude;
-          var y = value.location.latitude;
-          
-          $http.get("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
-                    +"reverseGeocode?location=" + x + "%2C" 
-                    + y + "&distance=200&outSR=&f=pjson")
-          .success(function(response) {
-            if (response.error) { 
-              value.geolocation = value.location.latitude 
-            + ", " + value.location.longitude;
-              return;
-            }
-            //console.log("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/"
-            //        +"reverseGeocode?location=" + x + "%2C" 
-            //        + y + "&distance=200&outSR=&f=pjson");
-            //console.log(response);
-             value.geolocation = response.address.Address + ", " + response.address.City;
-          })
-          .error(function() {
-            value.geolocation = value.location.latitude 
-            + ", " + value.location.longitude;
-          })
-          .finally(function() {
-            $scope.$broadcast('scroll.refreshComplete');
-          }); 
-        });
-      })
+  $scope.doRefresh = function () {
+    $rootScope.doRefresh(function () {
+      $scope.$broadcast('scroll.refreshComplete');
     });
   };
 
@@ -215,10 +243,9 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
 
 })
 
-.controller('ListDetailCtrl', function($scope, $stateParams, $ionicPlatform, $http, $ionicPopup) {
+.controller('ListDetailCtrl', function($scope, $stateParams, $ionicPlatform, $http, $ionicPopup, $rootScope) {
   // use $stateParams to grab :id
   // eyy
-  $scope.entry = JSON.parse($stateParams.entry);
   $scope.comment = {data: ""};
   $scope.comments = [];
   $scope.title = "Problem Report";
@@ -227,20 +254,38 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
 
   $ionicPlatform.ready(function() {
     $scope.buttonTitle = "+ Support";
-    $http.get("http://localpulse.org/api/1.0/getComments/" + $scope.entry.objectId)
-      .success(function(response) {
-        console.log(response);
-        $scope.comments = response;
-      })
-      .error(function() {
-        console.log("Error fetching comments, or there were no comments");
-      });
+    if ($rootScope.entries) {
+      afterRefresh();
+      if ($scope.entry.didUpvote) {
+        $scope.buttonTitle = "✓ Supported";
+      }
+    } else {
+      $rootScope.doRefresh(afterRefresh);
+    }
+    function afterRefresh() {
+      $scope.entry = $rootScope.findEntry($stateParams.id);
+      $http.get("http://localpulse.org/api/1.0/getComments/" + $scope.entry.objectId)
+        .success(function(response) {
+          $scope.comments = response;
+        })
+        .error(function() {
+          console.log("Error fetching comments, or there were no comments");
+        });
+    }
   });
 
-  // for video demonstration purposes
-  $scope.fakeVote = function() {
-    $scope.buttonTitle = "✓ Supported";
-    $scope.entry.votes++;
+  $scope.upvoteToggle = function() {
+    var orig = $scope.entry.votes;
+    if (!$scope.entry.didUpvote) {
+      $scope.buttonTitle = "✓ Supported";
+      $scope.entry.didUpvote = true;
+      $scope.entry.votes++;
+    } else {
+      $scope.buttonTitle = "+ Support";
+      $scope.entry.didUpvote = false;
+      $scope.entry.votes--;
+    }
+    $rootScope.vote($scope.entry, $scope.entry.votes - orig);
   }
 
   $scope.postComment = function() {
@@ -274,7 +319,7 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
    var map, csv;
 
       require([
-        "esri/map", 
+        "esri/map",
         "esri/layers/CSVLayer",
         "esri/Color",
         "esri/symbols/SimpleMarkerSymbol",
@@ -296,7 +341,7 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
         map = new Map("map", {
           basemap: "topo",
           center: [-118, 34.5],
-          zoom: 4 
+          zoom: 4
         });
         var csv = new CSVLayer("http://localpulse.org/api/1.0/getAll", {
           copyright: "Pulse LLC"
@@ -342,5 +387,5 @@ angular.module('starter.controllers', ['ionic', 'ngCordova', 'angularMoment'])
   $scope.settings = {
     enableFriends: true
   };
-  
+
 });

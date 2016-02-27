@@ -14,11 +14,11 @@
          <div ng-repeat="entry in entries" class="item problem-entry" ng-style="{'background': 'linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url(&quot;http://localpulse.org/' + entry.pictures[0] + '&quot;)'}">
             <div class="wrapper">
                   <div class="votingButtons" style="width: 20px;height: 50px; z-index: 999; margin: 0 0 0 0; float: left; color: white">
-                      <a ng-click="upvoteToggle($index)" style="display: block"><img src="img/upvote.png" ng-if="!didUpvote[$index]" width="15"><img src="img/upvote-fill.png" ng-if="didUpvote[$index]" width="15"></a>
+                      <a ng-click="upvoteToggle(entry.objectId)" style="display: block"><img src="img/upvote.png" ng-if="!entry.didUpvote" width="15"><img src="img/upvote-fill.png" ng-if="entry.didUpvote" width="15"></a>
                       <p class="votes">{{entry.votes}}</p>
-                      <a ng-click="downvoteToggle($index)" style="display: block"><img src="img/downvote.png" ng-if="!didDownvote[$index]" width="15"><img src="img/downvote-fill.png" ng-if="didDownvote[$index]" width="15"></a>
+                      <a ng-click="downvoteToggle(entry.objectId)" style="display: block"><img src="img/downvote.png" ng-if="!entry.didDownvote" width="15"><img src="img/downvote-fill.png" ng-if="entry.didDownvote" width="15"></a>
                   </div>
-                  <div class="content" style="margin-left: 30px; margin-top: 10px" ui-sref="tab.listdetail({id: '{{entry.objectId}}', entry: '{{entry | json}}'}) ">
+                  <div class="content" style="margin-left: 30px; margin-top: 10px" ui-sref="tab.listdetail({id: entry.objectId}) ">
                       <h2 style="white-space: normal">{{entry.description}}</h2>
                       <p>{{entry.geolocation}}</p>
                   </div>
