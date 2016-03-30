@@ -49,9 +49,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       }
     }
   })
-  
+
   .state('tab.listdetail', {
-    url: '/listview/:entry',
+    url: '/listview/:id',
     views: {
       'tab-listview': {
         templateUrl: 'templates/tab-listdetail.html',
