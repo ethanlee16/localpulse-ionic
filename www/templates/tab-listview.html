@@ -11,7 +11,7 @@
     on-refresh="doRefresh()">
     </ion-refresher>
     <div class="list">
-         <div ng-repeat="entry in entries" class="item problem-entry" ng-style="{'background': 'linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url(&quot;http://localpulse.org/' + entry.pictures[0] + '&quot;)'}">
+         <div ng-repeat="entry in entries | orderBy: '-createdAt'" class="item problem-entry" ng-style="{'background': 'linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url(&quot;http://localpulse.org/' + entry.pictures[0] + '&quot;)'}">
             <div class="wrapper">
                   <div class="votingButtons" style="width: 20px;height: 50px; z-index: 999; margin: 0 0 0 0; float: left; color: white">
                       <a ng-click="upvoteToggle($index)" style="display: block"><img src="img/upvote.png" ng-if="!didUpvote[$index]" width="15"><img src="img/upvote-fill.png" ng-if="didUpvote[$index]" width="15"></a>
